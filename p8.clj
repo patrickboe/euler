@@ -28,7 +28,7 @@
   (take 5 x))
 
 (defn there-are-five [x]
-  (> (count x) 4))
+  (= (count x) 5))
 
 (defn group-in-fives [x]
   (take-while there-are-five (map take-five (iterate rest x))))
