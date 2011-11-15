@@ -9,7 +9,7 @@
   (let [d (/ x factor)]
     (if (not (divides? d factor))
       d
-      (eliminate-factor d factor))))
+      (recur d factor))))
 
 (defn limited-factors-in [x coll lim]
   (lazy-seq 
@@ -33,10 +33,9 @@
         #(empty? (factors-in % rknown))
         (iterate plus2 (plus2 (first known)))))))
 
-(defn primes
-  ([]
-    (concat (list 2 3) (primes (list 3 2))))
-  ([known]
-    (lazy-seq
-      (let [m (next-prime known)]
-        (cons m (primes (cons m known)))))))
+(defn primes []
+  (cons 2
+    (map first
+      (iterate
+        #(cons (next-prime %) %)
+        (list 3 2)))))
