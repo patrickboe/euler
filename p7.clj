@@ -27,14 +27,16 @@
   (limited-factors-in x coll (sqrt x)))
 
 (defn next-prime [known]
-  (first
-    (filter
-      #(empty? (factors-in % (reverse known)))
-      (iterate plus2 (plus2 (first known))))))
+  (let [rknown (reverse known)]
+    (first
+      (filter
+        #(empty? (factors-in % rknown))
+        (iterate plus2 (plus2 (first known)))))))
 
-(defn prime-iter [known-primes] 
-  (let [n (next-prime known-primes)]
-    (cons n known-primes)))
-
-(defn primes []
-  (map first (cons [2] (iterate prime-iter [3 2]))))
+(defn primes
+  ([]
+    (concat (list 2 3) (primes (list 3 2))))
+  ([known]
+    (lazy-seq
+      (let [m (next-prime known)]
+        (cons m (primes (cons m known)))))))
