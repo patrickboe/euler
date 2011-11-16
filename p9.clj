@@ -1,21 +1,23 @@
+(use 'clojure.contrib.math)
+
 (defn square [x] (* x x))
 
-(defn py-triplets []
-  (filter nil? (map get-triplet (map square (range 1)))))
+(defn sum-of-squares [& operands]
+  (reduce + (map square operands)))
 
-(defn divides? [a b]
-  (= 0 (mod a b)))
+(defn make-goal-triplet [goal-sum a b]
+  (let [c (sqrt (sum-of-squares a b))]
+    (if (= (+ a b c) goal-sum)
+      [a b c])))
 
-(defn whole? [x]
-  (divides? x 1))
+(defn triplet-for [goal-sum a]
+   (some
+     (partial make-goal-triplet goal-sum a)
+     (range a (- goal-sum (* 2 a)))))
 
-(defn is-square [x]
-  (whole? (sqrt x)))
+(defn first-goal-triplet [goal-sum]
+  (some
+    (partial triplet-for goal-sum)
+    (range 1 goal-sum)))
 
-(defn are-triplets [a b]
-  (is-square (square a) (square b)))
-
-(defn get-triplet [a]
-  (let [b] (first (filter (partial are-triplets a) (range a (* 2 a)))))
-
-
+(apply * (first-goal-triplet 1000))
