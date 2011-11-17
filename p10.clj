@@ -21,8 +21,7 @@
         (recur (rest table) new-tally)))))
 
 (defn split-by-consumable [table]
-  (let [[consuming dormant] (split-at (low-row-count table) table)]
-    [(drop-while empty? consuming) dormant]))
+  (split-at (low-row-count table) table))
 
 (defn first-nonzero [row]
   (let [f (first row)]
@@ -40,7 +39,7 @@
          row)))
 
 (defn prune [table value]
-  (map (partial prune-from-row value) table))
+  (remove empty? (map (partial prune-from-row value) table)))
 
 (defn sundaram-series [table]
   (lazy-seq
