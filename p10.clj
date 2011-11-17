@@ -34,9 +34,10 @@
 (defn prune-from-row [value row]
   (if (= value (first row))
      (rest row)
-     (if (= (first row) 0)
-       (prune-from-row value (rest row))
-       row)))
+     (if
+       (and (= (first row) 0) (= value (first (rest row))))
+         (rest (rest row))
+         row)))
 
 (defn prune [table value]
   (map (partial prune-from-row value) table))
@@ -44,8 +45,8 @@
 (defn sundaram-series [table]
   (lazy-seq
     (let [[consumable dormant] (split-by-consumable table)]
-      (and
-        consumable
+      (if (empty? consumable)
+        nil
         (let [lowest-n (apply min (firsts consumable))
               rest-of-table (concat (prune consumable lowest-n) dormant)]
           (cons lowest-n (sundaram-series rest-of-table)))))))
