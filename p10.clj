@@ -1,43 +1,30 @@
 (use 'clojure.contrib.math)
 
-(defn divides? [x y]
-  (= 0 (mod x y)))
+(defn sundaram-row [t-limit]
+  #(cons 0 (range
+     (+ 1 (* % 3))
+     t-limit
+     (+ 1 (* 2 %)))))
 
-(defn plus2 [x] (+ x 2))
+(defn sundaram-table [limit]
+  (let [t-limit (quot limit 2)]
+    (map
+      (sundaram-row t-limit)
+      (range 1 (- (quot t-limit 3) 1)))))
 
-(defn eliminate-factor [x factor]
-  (let [d (/ x factor)]
-    (if (not (divides? d factor))
-      d
-      (recur d factor))))
+(defn low-rows [table]
+  (lazy-seq
+    (let [r (first table)
+          n (first r)]
+      (if (= 0 n)
+        (list (rest r))
+        (cons r (low-rows (rest table)))))))
 
-(defn limited-factors-in [x coll lim]
-  (lazy-seq 
-    (let [guess (first coll)]
-      (if (divides? x guess)
-        (cons guess (limited-factors-in x (rest coll) x))
-        (if (or (> guess lim) (empty? (rest coll)))
-          nil
-          (limited-factors-in x (rest coll) lim))))))
+(defn firsts [table]
+  (map first table))
 
-(defn factors-in [x coll]
-  (limited-factors-in x coll (sqrt x)))
+(defn lowest-n [table]
+  (apply min (firsts (low-rows table))))
 
-(defn none-are-factors? [coll]
-  #(empty? (factors-in % coll)))
-  
-(defn next-prime [last-known known]
- (first
-   (filter
-     (none-are-factors? known)
-     (iterate plus2 (plus2 last-known)))))
-
-(defn add-next-prime [[last-known known]]
-  (let [n (next-prime last-known known)]
-    [n (conj known n)]))
-
-(defn primes []
-  (cons 2 (map first (iterate add-next-prime [3 [2 3]]))))
-
-(defn sum-primes-under [x]
-  (reduce + (take-while #(< % x) (primes))))
+(defn next-sundaram [table]
+  (let [n (lowest-n table)]))
