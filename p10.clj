@@ -16,7 +16,7 @@
   ([table] (low-row-count table 0))
   ([table tally]
     (let [new-tally (+ 1 tally)]
-      (if (= 0 (first (first table)))
+      (if (or (= 0 (first (first table))) (empty? (rest table)))
         new-tally
         (recur (rest table) new-tally)))))
 
@@ -24,8 +24,12 @@
   (let [[consuming dormant] (split-at (low-row-count table) table)]
     [(drop-while empty? consuming) dormant]))
 
+(defn first-nonzero [row]
+  (let [f (first row)]
+    (if (= 0 f) (first-nonzero (rest row)) f)))
+
 (defn firsts [table]
-  (map first table))
+  (map first-nonzero table))
 
 (defn prune-from-row [value row]
   (if (= value (first row))
