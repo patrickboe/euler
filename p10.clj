@@ -27,11 +27,15 @@
 (defn firsts [table]
   (map first table))
 
-(defn prune-row [value]
-  #(if (= value (first %)) (rest %) %))
+(defn prune-from-row [value row]
+  (if (= value (first row))
+     (rest row)
+     (if (= (first row) 0)
+       (prune-from-row value (rest row))
+       row)))
 
 (defn prune [table value]
-  (map (prune-row value) table))
+  (map (partial prune-from-row value) table))
 
 (defn sundaram-series [table]
   (lazy-seq
