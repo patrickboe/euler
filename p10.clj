@@ -1,7 +1,11 @@
 (defn sundaram-to-prime [n] (+ 1 (* 2 n)))
 
 (defn sundaram-row [n]
-  #(range (+ 1 (* % 3)) n (+ 1 (* 2 %))))
+  #(let [row-inc (+ 1 (* 2 %))]
+    (range
+       (+ (* (- % 1) row-inc) (+ 1 (* % 3)))
+       n
+       row-inc)))
 
 (defn sundaram-table [n]
   (remove empty?
