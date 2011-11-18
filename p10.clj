@@ -13,6 +13,18 @@
       (sundaram-row n)
       (range 1 (+ 1 (quot n 3))))))
 
+(defn decreasing? [x]
+  (> (first (x 0)) (first (x 1))))
+
+(defn take-bite [table]
+  (let [[unripe [bite]](split-with decreasing? (partition 2 1 table))
+
+(defn sundaram-sort [table]
+  (lazy-seq
+    (let [[k ks] (bite table)
+          rest-sorted (sundaram-sort ks)]
+      (or (and k (cons k rest-sorted)) rest-sorted))))
+
 (defn primes-to [limit]
   (let [n (quot limit 2)
         numbers (int-array (range 0 n)) 
