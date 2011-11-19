@@ -1,3 +1,5 @@
+(use '[clojure.string :only [join]])
+
 (defn nonsundaram-to-prime [n] (+ 1 (* 2 n)))
 
 (defn sump [table]
