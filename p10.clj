@@ -2,20 +2,20 @@
 
 (defn nonsundaram-to-prime [n] (+ 1 (* 2 n)))
 
-(defn sump [table]
+(defn dump [table]
   (println (join \newline (map #(join " " (map str %)) table))))
 
-(defn sundaram-row [n]
-  #(let [row-inc (+ 1 (* 2 %))]
+(defn sundaram-row [end step]
+  (let [row-inc (+ 1 (* 2 step))]
     (range
-       (+ (* (- % 1) row-inc) (+ 1 (* % 3)))
-       n
+       (+ (* (- step 1) row-inc) (+ 1 (* step 3)))
+       end
        row-inc)))
 
 (defn sundaram-table [n]
   (remove empty?
     (map
-      (sundaram-row n)
+      (partial sundaram-row n)
       (range 1 (+ 1 (quot n 3))))))
 
 (defn decreasing? [x]
@@ -31,15 +31,15 @@
        [unripe [[bite & bitten] & more]] (split-at (count upwards) table)]
     [bite (concat unripe (if bitten (cons bitten more) more))]))
 
-(defn sundaram-sort
-  ([table] (sundaram-sort nil table))
+(defn flat-sundaram
+  ([table] (flat-sundaram nil table))
   ([prev-bite table]
     (lazy-seq
       (if (not-empty table)
         (let [[bite ks] (take-bite table)]
           (if (= bite prev-bite)
-            (sundaram-sort prev-bite ks)
-            (cons bite (sundaram-sort bite ks))))
+            (flat-sundaram prev-bite ks)
+            (cons bite (flat-sundaram bite ks))))
         nil))))
 
 (defn remove-sundarams [sundarams xs]
@@ -56,7 +56,7 @@
     (cons 2
       (map nonsundaram-to-prime
         (remove-sundarams
-          (sundaram-sort (sundaram-table n))
+          (flat-sundaram (sundaram-table n))
           numbers)))))
 
 (defn sum-primes-to [limit]
