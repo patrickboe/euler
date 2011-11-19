@@ -44,14 +44,15 @@
 
 (defn remove-sundarams [sundarams xs]
   (lazy-seq
-    (let [remaining (remove-sundarams (rest sundarams)(rest xs))]
-    (if (= (first xs) (first sundarams))
-      remaining
-      (cons (first xs) remaining)))))
+    (if (not-empty xs)
+      (if (= (first xs) (first sundarams))
+        (remove-sundarams (rest sundarams) (rest xs))
+        (cons (first xs) (remove-sundarams sundarams (rest xs))))
+      nil)))
 
 (defn primes-to [limit]
   (let [n (quot limit 2)
-        numbers (int-array (range 0 n))]
+        numbers (int-array (range 1 n))]
     (cons 2
       (map nonsundaram-to-prime
         (remove-sundarams
