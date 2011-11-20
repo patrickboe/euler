@@ -47,10 +47,10 @@
             (swap! mem assoc mkey ret)
             ret))))))
 
-(def memo-add-next-prime (keyed-memoize add-next-prime first))
+(def add-next-prime (keyed-memoize add-next-prime first))
 
 (defn primes []
-  (cons 2 (map first (iterate #(apply memo-add-next-prime %) [3 [2 3]]))))
+  (cons 2 (map first (iterate #(apply add-next-prime %) [3 [2 3]]))))
 
 (defn sum-primes-under [x]
   (reduce + (take-while #(< % x) (primes))))
