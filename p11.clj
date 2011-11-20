@@ -34,13 +34,36 @@
 (defn to-numgrid [g]
   (map to-nums (split-lines g)))
 
-(defn fsnoc [a b] (cons (first b) a))
+(defn add-first [a b] (cons (first b) a))
 
-(defn rsnoc [a b] (cons (rest b) a))
+(defn add-rest [a b] (cons (rest b) a))
 
-(defn rotate [g]
+(defn rotate90 [g]
   (and (not-empty (first g))
     (lazy-seq
       (cons
-        (reduce fsnoc nil g)
-        (rotate (reverse (reduce rsnoc nil g)))))))
+        (reduce add-first nil g)
+        (rotate90 (reverse (reduce add-rest nil g)))))))
+
+(defn pop-diag [turned len g]
+  (and (not-empty (first g))
+    (let [take-from (take len g)]
+      [(cons (map first take-from) turned)
+       (+ 1 len)
+       (concat
+         (drop-while empty? (map rest take-from))
+         (drop len g))])))
+
+(defn rotate45 [g]
+  (reverse (map reverse (last (take-while identity
+    (drop 1 (map first (iterate #(apply pop-diag %) [nil 1 g]))))))))
+
+(defn rotations [g]
+  [g (rotate45 g) (rotate90 g) (rotate45 (rotate90 g))])
+
+(defn fours-from [rows]
+  (apply concat (map #(partition 4 1 %) rows)))
+
+(defn max-four-product [s]
+  (apply max (map #(apply * %)
+    (fours-from (apply concat (rotations (to-numgrid s)))))))
