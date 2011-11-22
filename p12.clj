@@ -10,7 +10,6 @@
 
 (defn lazy-factors [n]
   (lazy-seq
-    (cons n
       (let 
         [first-factor
            (first
@@ -18,14 +17,18 @@
               (take-while #(<= (square %) n) (primes))))]
         (and
           first-factor
-          (cons
+          (let
+            [rest-facs (lazy-factors (/ n first-factor))
+             
+            cons
+    (cons n
               first-factor
-              (lazy-factors (/ n first-factor))))))))
+              )
 
 (def lazy-factors (memoize lazy-factors))
 
 (defn factors-of [n]
-  (distinct (cons 1 (lazy-factors n))))
+  (cons 1 (lazy-factors n)))
 
 (defn next-triangle [prev n]
   [(+ n prev) (+ 1 n)])
@@ -34,4 +37,5 @@
   (map first (iterate #(apply next-triangle %) [1 2])))
 
 (defn n-factored-triangle [n]
-  (first (filter #(> (count (factors-of %)) n) (triangles))))
+  (let [n! (reduce * (range 1 n))]
+    (first (filter #(> (count (factors-of %)) n) (drop-while #(< % n!) (triangles))))))
