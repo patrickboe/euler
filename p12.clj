@@ -8,27 +8,34 @@
 (defn cons-if [pred x xs]
   (if pred (cons x xs) xs))
 
-(defn lazy-factors [n]
+(defn prime-factors [n]
   (lazy-seq
-      (let 
-        [first-factor
-           (first
-            (filter #(= 0 (mod n %))
-              (take-while #(<= (square %) n) (primes))))]
+    (let
+      [first-factor
+         (first
+          (filter #(= 0 (mod n %))
+            (take-while #(<= (square %) n) (primes))))]
+      (or
         (and
           first-factor
-          (let
-            [rest-facs (lazy-factors (/ n first-factor))
-             
-            cons
-    (cons n
-              first-factor
-              )
+          (cons
+            first-factor
+            (prime-factors (/ n first-factor))))
+        (list n)))))
 
-(def lazy-factors (memoize lazy-factors))
+(def prime-factors (memoize prime-factors))
 
-(defn factors-of [n]
-  (cons 1 (lazy-factors n)))
+(defn inc-counts [[prev counts] x]
+  (if
+    (= prev x)
+    [prev (cons (+ 1 (first counts)) (rest counts))]
+    [x (cons 1 counts)]))
+
+(defn combination-count [items]
+  (reduce inc-counts [0 nil] items))
+
+(defn factor-count [n]
+  (+ 1 (combination-count (prime-factors n))))
 
 (defn next-triangle [prev n]
   [(+ n prev) (+ 1 n)])
@@ -38,4 +45,4 @@
 
 (defn n-factored-triangle [n]
   (let [n! (reduce * (range 1 n))]
-    (first (filter #(> (count (factors-of %)) n) (drop-while #(< % n!) (triangles))))))
+    (first (filter #(> (factor-count %) n) (drop-while #(< % n!) (triangles))))))
