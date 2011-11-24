@@ -25,17 +25,46 @@
 
 (def prime-factors (memoize prime-factors))
 
-(defn inc-counts [[prev counts] x]
+(defn inc-dupes [[prev dupe-counts unique] x]
   (if
     (= prev x)
-    [prev (cons (+ 1 (first counts)) (rest counts))]
-    [x (cons 1 counts)]))
+    [prev (cons (+ 1 (first dupe-counts)) (rest dupe-counts)) unique]
+    [x (cons 0 dupe-counts) (+ 1 unique)]))
+
+(defn dup-coeff [x]
+  (+ 1 (/ x 2)))
+
+(defn to-power [x y]
+  (reduce * (repeat y x)))
+
+(defn nonzero [x]
+  (not (= 0 x)))
 
 (defn combination-count [items]
-  (reduce inc-counts [0 nil] items))
+  (let [[_ dupe-counts unique] (reduce inc-dupes [0 nil 0] items)]
+    (*
+      (to-power 2 unique)
+      (reduce * 1 (map dup-coeff (filter nonzero dupe-counts))))))
 
 (defn factor-count [n]
-  (+ 1 (combination-count (prime-factors n))))
+  (combination-count (prime-factors n)))
+
+(defn combinations [items]
+  (and
+    (not-empty items)
+    (let [c (combinations (rest items))]
+      (cons
+        (take 1 items)
+        (concat  (map #(cons (first items) %) c) c)))))
+
+(defn factors [n]
+  (cons 1 (sort (distinct (map #(reduce * %) (combinations (prime-factors n)))))))
+
+(defn alt-factor-count [n]
+  (count (factors n)))
+
+(defn fc-compare []
+  (some #(if (= (factor-count %) (alt-factor-count %)) false %) (drop 2 (range))))
 
 (defn next-triangle [prev n]
   [(+ n prev) (+ 1 n)])
@@ -45,4 +74,4 @@
 
 (defn n-factored-triangle [n]
   (let [n! (reduce * (range 1 n))]
-    (first (filter #(> (factor-count %) n) (drop-while #(< % n!) (triangles))))))
+    (first (filter #(> (factor-count %) n) (triangles)))))
