@@ -25,26 +25,17 @@
 
 (def prime-factors (memoize prime-factors))
 
-(defn inc-dupes [[prev dupe-counts unique] x]
+(defn inc-exponents [[prev counts] x]
   (if
     (= prev x)
-    [prev (cons (+ 1 (first dupe-counts)) (rest dupe-counts)) unique]
-    [x (cons 0 dupe-counts) (+ 1 unique)]))
+    [prev (cons (+ 1 (first counts)) (rest counts))]
+    [x (cons 1 counts)]))
 
-(defn dup-coeff [x]
-  (+ 1 (/ x 2)))
-
-(defn to-power [x y]
-  (reduce * (repeat y x)))
-
-(defn nonzero [x]
-  (not (= 0 x)))
+(defn exponents [xs]
+  (second (reduce inc-exponents [0 nil] xs)))
 
 (defn combination-count [items]
-  (let [[_ dupe-counts unique] (reduce inc-dupes [0 nil 0] items)]
-    (*
-      (to-power 2 unique)
-      (reduce * 1 (map dup-coeff (filter nonzero dupe-counts))))))
+  (reduce * (map inc (exponents items))))
 
 (defn factor-count [n]
   (combination-count (prime-factors n)))
