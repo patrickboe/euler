@@ -14,16 +14,19 @@
 
 (def count-from (memoize count-from))
 
-(defn max-count [[run-max run-best :as running] k]
-  (let [c (count-from k)]
-    (if
-      (> run-max c)
-      running
-      [c k])))
+(defn best-iter [beats? value-of]
+  (fn [[score _ :as running] k]
+    (let [v (value-of k)]
+      (if
+        (beats? score v)
+        running
+        [v k]))))
+
+(defn best [beats? value-of [i & r]]
+  (second (reduce
+    (best-iter beats? value-of)
+    [(value-of i) i]
+    r)))
 
 (defn max-seq-under [n]
-  (second
-    (reduce
-      max-count
-      [1 1]
-      (range 2 n))))
+  (best > count-from (range 1 n)))
