@@ -31,10 +31,28 @@
       (100 . "hundred")
       (1000 . "thousand")))
 
-(define digits (in-range 1 10))
+(define (range-list a b) (stream->list (in-range a b)))
+
+(define digits (range-list 1 10))
 
 (define magnitudes '(100 1000))
 
-(define teens (in-range 10 20))
+(define teens (range-list 10 20))
 
 (define decades (map (lambda (x) (* 10 x)) (rest digits)))
+
+(define (subcential? x) (< x 100))
+
+(define (subvential? x) (< x 20))
+
+(define (name-subvential x) (hash-ref num-names x))
+
+(define (name-subcential x)
+  (if (subvential? x)
+    (name-subvential x)
+    (let*
+      ([d (modulo x 10)]
+       [t (hash-ref num-names (- x d))])
+      (if (= 0 d)
+        t
+        (string-append t " " (name-subvential d))))))
