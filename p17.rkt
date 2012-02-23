@@ -41,6 +41,8 @@
 
 (define decades (map (lambda (x) (* 10 x)) (rest digits)))
 
+(define (submillial? x) (< x 1000))
+
 (define (subcential? x) (< x 100))
 
 (define (subvential? x) (< x 20))
@@ -56,3 +58,29 @@
       (if (= 0 d)
         t
         (string-append t " " (name-subvential d))))))
+
+(define (name-submillial x)
+  (if (subcential? x)
+    (name-subcential x)
+    (let*
+      ([s (modulo x 100)]
+       [h (/ (- x s) 100)]
+       [hpart
+         (string-append
+           (hash-ref num-names h)
+           " "
+           (hash-ref num-names 100))])
+      (if (= 0 s)
+        hpart
+        (string-append hpart " and " (name-subcential s))))))
+
+(define (name-of x)
+  (if (submillial? x) (name-submillial x) "one thousand"))
+
+(define (mask-whitespace c)
+  (if (char-whitespace? c) 0 1))
+
+(define (letters-used x)
+  (sequence-fold + 0 (sequence-map mask-whitespace (name-of x))))
+
+(foldl + 0 (map letters-used (range-list 1 1001)))
