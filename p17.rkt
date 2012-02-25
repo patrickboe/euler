@@ -42,33 +42,19 @@
      (let-values ([(a b) (quotient/remainder n x)])
        (qr a b))))
 
-(define-match-expander subtwenty
-  (λ (stx)
-    (syntax-case stx ()
-      [(_ elts ...)
-       #'(? subtwenty? elts ...)])))
+(define by-tens (divider 10))
 
-(define-match-expander tens
-  (λ (stx)
-    (syntax-case stx ()
-      [(_ elts ...)
-       #'(? tens? (app (divider 10) (qr elts ...)))])))
-
-(define-match-expander hundreds
-  (λ (stx)
-    (syntax-case stx ()
-      [(_ elts ...)
-       #'(? hundreds? (app (divider 100) (qr elts ...)))])))
+(define by-hundreds (divider 100))
 
 (define (name n)
   (string-join
     (match n
-      [(subtwenty d) (list (hash-ref num-names d))]
-      [(tens t d)
+      [(? subtwenty? x) (list (hash-ref num-names x))]
+      [(? tens? (app by-tens (qr t r)))
        (cons
          (hash-ref num-names (* 10 t))
-         (if (= d 0) empty (list (name d))))]
-      [(hundreds h r)
+         (if (= r 0) empty (list (name r))))]
+      [(? hundreds? (app by-hundreds (qr h r)))
        (append
          (list (name h) "hundred")
          (if (= r 0) empty (list "and" (name r))))]
