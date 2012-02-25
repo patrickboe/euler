@@ -27,60 +27,50 @@
       (60 . "sixty")
       (70 . "seventy")
       (80 . "eighty")
-      (90 . "ninety")
-      (100 . "hundred")
-      (1000 . "thousand")))
+      (90 . "ninety")))
 
-(define (range-list a b) (stream->list (in-range a b)))
+(define (subtwenty? x) (< x 20))
 
-(define digits (range-list 1 10))
+(define (tens? x) (< x 100))
 
-(define magnitudes '(100 1000))
+(define (hundreds? x) (< x 1000))
 
-(define teens (range-list 10 20))
+(struct qr (quot rem))
 
-(define decades (map (lambda (x) (* 10 x)) (rest digits)))
+(define (divider x)
+  (λ (n)
+     (let-values ([(a b) (quotient/remainder n x)])
+       (qr a b))))
 
-(define (submillial? x) (< x 1000))
+(define-match-expander subtwenty
+  (λ (stx)
+    (syntax-case stx ()
+      [(_ elts ...)
+       #'(? subtwenty? elts ...)])))
 
-(define (subcential? x) (< x 100))
+(define-match-expander tens
+  (λ (stx)
+    (syntax-case stx ()
+      [(_ elts ...)
+       #'(? tens? (app (divider 10) (qr elts ...)))])))
 
-(define (subvential? x) (< x 20))
+(define-match-expander hundreds
+  (λ (stx)
+    (syntax-case stx ()
+      [(_ elts ...)
+       #'(? hundreds? (app (divider 100) (qr elts ...)))])))
 
-(define (name-subvential x) (hash-ref num-names x))
-
-(define (name-subcential x)
-  (if (subvential? x)
-    (name-subvential x)
-    (let*
-      ([d (modulo x 10)]
-       [t (hash-ref num-names (- x d))])
-      (if (= 0 d)
-        t
-        (string-append t " " (name-subvential d))))))
-
-(define (name-submillial x)
-  (if (subcential? x)
-    (name-subcential x)
-    (let*
-      ([s (modulo x 100)]
-       [h (/ (- x s) 100)]
-       [hpart
-         (string-append
-           (hash-ref num-names h)
-           " "
-           (hash-ref num-names 100))])
-      (if (= 0 s)
-        hpart
-        (string-append hpart " and " (name-subcential s))))))
-
-(define (name-of x)
-  (if (submillial? x) (name-submillial x) "one thousand"))
-
-(define (mask-whitespace c)
-  (if (char-whitespace? c) 0 1))
-
-(define (letters-used x)
-  (sequence-fold + 0 (sequence-map mask-whitespace (name-of x))))
-
-(foldl + 0 (map letters-used (range-list 1 1001)))
+(define (name n)
+  (string-join
+    (match n
+      [(subtwenty d) (list (hash-ref num-names d))]
+      [(tens t d)
+       (cons
+         (hash-ref num-names (* 10 t))
+         (if (= d 0) empty (list (name d))))]
+      [(hundreds h r)
+       (append
+         (list (name h) "hundred")
+         (if (= r 0) empty (list "and" (name r))))]
+      [1000 '("one thousand")])
+    " "))
