@@ -60,3 +60,11 @@
          (if (= r 0) empty (list "and" (name r))))]
       [1000 '("one thousand")])
     " "))
+
+(define (mask-whitespace c)
+  (if (char-whitespace? c) 0 1))
+
+(define (letters-used x)
+  (sequence-fold + 0 (sequence-map mask-whitespace (name x))))
+
+(foldl + 0 (map letters-used (stream->list (in-range 1 1001))))
