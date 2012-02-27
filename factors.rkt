@@ -75,3 +75,12 @@
   (combo-step-combos
     (stream-last
       (iterate add-combo (combo-step (list empty) xs)))))
+
+(define (starts-with x)
+  (λ(l) (eq? x (car l))))
+
+(define (proper-divisors x)
+  (cons 1
+    (map (λ(l) (foldl * 1 l))
+      (remove (starts-with x)
+        (rest (combinations (prime-factors x)))))))

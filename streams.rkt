@@ -8,7 +8,7 @@
   iterate)
 
 (define (stream-take? f s)
-  (if (and (not (stream-empty? s) (f (stream-first s))))
+  (if (and (not (stream-empty? s)) (f (stream-first s)))
     (stream-cons (stream-first s) (stream-take? f (stream-rest s)))
     empty))
 
