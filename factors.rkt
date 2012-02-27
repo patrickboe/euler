@@ -76,11 +76,11 @@
     (stream-last
       (iterate add-combo (combo-step (list empty) xs)))))
 
-(define (starts-with x)
-  (λ(l) (eq? x (car l))))
+(define (proper-to? x)
+  (λ(l) (not (eq? x (car l)))))
 
 (define (proper-divisors x)
   (cons 1
     (map (λ(l) (foldl * 1 l))
-      (remove (starts-with x)
+      (filter (proper-to? x)
         (rest (combinations (prime-factors x)))))))
