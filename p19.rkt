@@ -1,5 +1,7 @@
 #lang racket
 
+(require "streams.rkt")
+
 (define (tie l) (shared [(c (append l c))] c))
 
 (define days
@@ -11,11 +13,6 @@
   (if (eq? (car l) sought)
     l
     (drop-neq (cdr l) sought)))
-
-(define (stream-take? f s)
-  (if (f (stream-first s))
-    (stream-cons (stream-first s) (stream-take? f (stream-rest s)))
-    empty))
 
 (define make-months (λ month-args
   (let
