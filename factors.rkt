@@ -66,10 +66,12 @@
    (if (stream-empty? xs)
      null
      (combo-step
-       (append combos (map (include (cons xs) combos)))
+       (append combos (map (include (stream-first xs)) combos))
        (stream-rest xs)))]))
 
 (define (valued? x) (not (null? x)))
 
 (define (combinations xs)
-  (stream-take? valued? (iterate add-combo (cons empty xs))))
+  (combo-step-combos
+    (stream-last
+      (iterate add-combo (combo-step (list empty) xs)))))

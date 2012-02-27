@@ -4,10 +4,11 @@
   stream-take
   stream-take?
   stream-drop
+  stream-last
   iterate)
 
 (define (stream-take? f s)
-  (if (f (stream-first s))
+  (if (and (not (stream-empty? s) (f (stream-first s))))
     (stream-cons (stream-first s) (stream-take? f (stream-rest s)))
     empty))
 
@@ -22,4 +23,11 @@
     (stream-cons (stream-first s) (stream-take (stream-rest s) (- n 1)))))
 
 (define (iterate f x)
-  (stream-cons x (iterate f (f x))))
+  (if (null? x)
+    empty-stream
+    (stream-cons x (iterate f (f x)))))
+
+(define (stream-last s)
+  (if (stream-empty? (stream-rest s))
+    (stream-first s)
+    (stream-last (stream-rest s))))
