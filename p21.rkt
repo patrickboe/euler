@@ -5,20 +5,18 @@
 (define (divisor-sums-under n)
   (stream->list
     (stream-map
-      (λ(a) (cons a (apply + (proper-divisors a))))
+      (λ(a) (apply + (proper-divisors a)))
       (in-range 1 n))))
 
 (define (amicable-nums-under n)
-  (let ([dsums (make-immutable-hash (divisor-sums-under n))])
-    (stream-fold
-      (λ(a x)
-        (if
+  (let*
+    ([dsums (list->vector (cons 0 (divisor-sums-under n)))]
+     [amicable? (λ(x)
+        (let ([this-sum (vector-ref dsums x)])
           (and
-            (eq? x (hash-ref dsums (hash-ref dsums x) 0))
-            (not (eq? x (hash-ref dsums x))))
-          (cons x a)
-          a))
-      '()
-      (in-range 1 n))))
+            (> (vector-length dsums) this-sum)
+            (eq? x (vector-ref dsums this-sum))
+            (not (eq? x this-sum)))))])
+    (stream-filter amicable? (in-range 1 n))))
 
-(apply + (amicable-nums-under 10000))
+(stream-fold + 0 (amicable-nums-under 10000))
