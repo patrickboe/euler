@@ -62,7 +62,7 @@
       (and
         (eq? 'Sunday (date-dy d))
         (eq? 1 (date-d d))))
-    (stream-take? 
+    (stream-take-while
       (λ(d) (< (date-y d) 2001))
         calendar)))
 

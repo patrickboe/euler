@@ -1,6 +1,11 @@
 #lang racket
 
-(require "streams.rkt")
+(require "combinations.rkt" "streams.rkt")
+
+(provide
+  proper-divisors
+  primes
+  prime-factors)
 
 (define (divides? x y)
   (eq? 0 (modulo x y)))
@@ -48,7 +53,7 @@
      [under-limit? (λ(x) (<= x limit))]
      [nonself-factors
        (stream-filter (λ(x) (divides? n x))
-         (stream-take? under-limit? primes))])
+         (stream-take-while under-limit? primes))])
       (if (stream-empty? nonself-factors)
         (stream n)
         (let ([first-factor (stream-first nonself-factors)])
@@ -56,50 +61,10 @@
             first-factor
             (prime-factors (/ n first-factor)))))))
 
-(define (repeat x n)
-  (build-list n (λ(a) x)))
-
-(define (include n x)
-  (λ(combo) (append combo (repeat x n))))
-
-(struct combo-step (combos xs))
-
-(define (split-on-duplicates xs)
-  (let* (
-    [start (stream-first xs)]
-    [duplicates (stream->list (stream-take? (λ(x) (eq? start x)) xs))])
-    (values duplicates (stream-drop xs (length duplicates)))))
-
-(define (one-through n)
-  (in-range 1 (+ 1 n)))
-
-(define (expand-combos combos duplicates)
-  (let ([x (first duplicates)])
-    (stream-fold
-      (λ(c i) (append c (map (include i x) combos)))
-      combos
-      (one-through (length duplicates)))))
-
-(define combo-additions (match-lambda
-  [(combo-step combos xs)
-   (if (stream-empty? xs)
-     null
-     (let-values ([(these others) (split-on-duplicates xs)])
-       (combo-step
-         (expand-combos combos these)
-         others)))]))
-
-(define (valued? x) (not (null? x)))
-
-(define (combinations xs)
-  (combo-step-combos
-    (stream-last
-      (iterate combo-additions (combo-step (list empty) xs)))))
-
 (define (product l) (foldl * 1 l))
 
 (define (proper-divisors x)
   (cons 1
     (drop-right 
-      (map product (rest (combinations (prime-factors x))))
+      (map product (rest (combinations (stream->list (prime-factors x)))))
       1)))

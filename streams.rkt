@@ -2,14 +2,14 @@
 
 (provide
   stream-take
-  stream-take?
+  stream-take-while
   stream-drop
   stream-last
   iterate)
 
-(define (stream-take? f s)
+(define (stream-take-while f s)
   (if (and (not (stream-empty? s)) (f (stream-first s)))
-    (stream-cons (stream-first s) (stream-take? f (stream-rest s)))
+    (stream-cons (stream-first s) (stream-take-while f (stream-rest s)))
     empty))
 
 (define (stream-drop s n)
