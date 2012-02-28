@@ -56,31 +56,50 @@
             first-factor
             (prime-factors (/ n first-factor)))))))
 
-(define (include x)
-  (λ(combo) (cons x combo)))
+(define (repeat x n)
+  (build-list n (λ(a) x)))
+
+(define (include n x)
+  (λ(combo) (append combo (repeat x n))))
 
 (struct combo-step (combos xs))
 
-(define add-combo (match-lambda
+(define (split-on-duplicates xs)
+  (let* (
+    [start (stream-first xs)]
+    [duplicates (stream->list (stream-take? (λ(x) (eq? start x)) xs))])
+    (values duplicates (stream-drop xs (length duplicates)))))
+
+(define (one-through n)
+  (in-range 1 (+ 1 n)))
+
+(define (expand-combos combos duplicates)
+  (let ([x (first duplicates)])
+    (stream-fold
+      (λ(c i) (append c (map (include i x) combos)))
+      combos
+      (one-through (length duplicates)))))
+
+(define combo-additions (match-lambda
   [(combo-step combos xs)
    (if (stream-empty? xs)
      null
-     (combo-step
-       (append combos (map (include (stream-first xs)) combos))
-       (stream-rest xs)))]))
+     (let-values ([(these others) (split-on-duplicates xs)])
+       (combo-step
+         (expand-combos combos these)
+         others)))]))
 
 (define (valued? x) (not (null? x)))
 
 (define (combinations xs)
   (combo-step-combos
     (stream-last
-      (iterate add-combo (combo-step (list empty) xs)))))
+      (iterate combo-additions (combo-step (list empty) xs)))))
 
-(define (proper-to? x)
-  (λ(l) (not (eq? x (car l)))))
+(define (product l) (foldl * 1 l))
 
 (define (proper-divisors x)
   (cons 1
-    (map (λ(l) (foldl * 1 l))
-      (filter (proper-to? x)
-        (rest (combinations (prime-factors x)))))))
+    (drop-right 
+      (map product (rest (combinations (prime-factors x))))
+      1)))
