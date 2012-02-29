@@ -21,16 +21,10 @@
       (in-naturals 1)
       (sequence->stream (map word-value names)))))
 
-(define (alpha-lower? a b)
-  (< (alpha-value a) (alpha-value b)))
-
 (define (list-before? x y)
-  (or
-    (empty? x)
-    (and
-      (not (empty? y))
-      (or
-        (< (car x) (car y))
+  (or (empty? x)
+    (and (not (empty? y))
+      (or (< (car x) (car y))
         (and (equal? (car x) (car y))
              (list-before? (cdr x) (cdr y)))))))
 
@@ -43,10 +37,8 @@
 (define (word-alpha-lower? a b)
   (comes-before? word-to-value-list a b))
 
-(define (alpha-sort x) x)
-
-;(define (alpha-sort xs)
-;  (merge-sort word-alpha-lower? xs))
+(define (alpha-sort xs)
+  (sort xs word-alpha-lower?))
 
 (stream-fold + 0
   (name-scores
