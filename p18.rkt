@@ -1,7 +1,6 @@
 #lang racket
 
-(define (split s delims)
-  (remv "" (regexp-split (string-append "[" delims "]") s)))
+(require "strings.rkt")
 
 (define (lines s) (split s "\n"))
 

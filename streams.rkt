@@ -1,6 +1,7 @@
 #lang racket
 
 (provide
+  stream-zip
   stream-take
   stream-take-while
   stream-drop
@@ -31,3 +32,10 @@
   (if (stream-empty? (stream-rest s))
     (stream-first s)
     (stream-last (stream-rest s))))
+
+(define (stream-zip a b)
+  (if (or (stream-empty? a) (stream-empty? b))
+    empty-stream
+    (stream-cons
+      (cons (stream-first a) (stream-first b))
+      (stream-zip (stream-rest a) (stream-rest b)))))
