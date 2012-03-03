@@ -1,6 +1,6 @@
 #lang racket
 
-(require "streams.rkt" "factors.rkt")
+(require srfi/45 "factors.rkt" "streams.rkt")
 
 (define (abundant? x)
   (> (apply + (proper-divisors x)) x))
@@ -8,39 +8,55 @@
 (define abundant-numbers
   (stream-filter abundant? (in-naturals 1)))
 
-(define (any? xs)
-  (not (empty? xs)))
+(define (append-lazy eager-list lazy-list)
+  (lazy
+    (match eager-list
+           ['() lazy-list]
+           [(cons x xs)
+            (delay (cons x (append-lazy xs lazy-list)))])))
 
-(define (split-while f xs)
-  (if (and (any? xs) (f (car xs)))
-    (let-values
-      ([(taken remain) (split-while f (cdr xs))])
-      (values (cons (car xs) taken) remain))
-    (values empty xs)))
+(define (lazy->set lz)
+  (local
+    [(define seed (make-hash))
+     (define (grow-seed z)
+       (match (force z)
+              ['() void]
+              [(cons x xs)
+               (hash-set! seed x #t)
+               (grow-seed xs)]))]
+    (grow-seed lz)
+    (list->set (hash-keys seed))))
 
-(define (pair-list-with xs x)
-  (map (λ(a) (cons x a)) xs))
+(define (filter-lazy pred lz)
+  (lazy
+    (match (force lz)
+           ['() '()]
+           [(cons x xs)
+            (if (pred x)
+              (delay (cons x (filter-lazy pred xs)))
+              (filter-lazy pred xs))])))
 
-(define pairs
-  (match-lambda
-    [(cons x xs) (append (pair-list-with (cons x xs) x) (pairs xs))]
-    [_ empty]))
+(define (sums-with lst x)
+  (map (λ(a) (+ x a)) lst))
 
-(define (zip-pairs from-front from-back ceil)
-  (if (empty? from-front)
-    empty
-    (if (empty? from-back)
-      (pairs from-front)
-      (if (> (+ (car from-front) (car from-back)) ceil)
-        (zip-pairs from-front (cdr from-back) ceil)
-        (match-let ([(cons x xs) from-front])
-          (append
-            (pair-list-with from-front x)
-            (pair-list-with from-back x)
-            (zip-pairs xs from-back ceil)))))))
+(define (sums s)
+  (lazy
+    (match s
+           ['() '()]
+           [(cons x xs)
+            (append-lazy (sums-with s x) (sums xs))])))
 
-(define (ceilinged-pairs xs ceil)
-  (let*-values
-    ([(half-ceil) (/ ceil 2)]
-     [(under-half over-half) (split-while (λ(x) (<= x half-ceil)) xs)])
-     (zip-pairs under-half (reverse over-half) ceil)))
+(define (abundant-sums-under x)
+  (let ((legal? (λ(y) (< y x))))
+  (lazy->set
+    (filter-lazy
+      legal?
+      (sums (stream->list (stream-take-while legal? abundant-numbers)))))))
+
+(time
+  (define non-abundant-sums
+    (set-subtract
+      (list->set (stream->list (in-range 1 28124)))
+      (abundant-sums-under 28124)))
+
+  (apply + (set->list non-abundant-sums)))
