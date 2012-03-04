@@ -19,6 +19,3 @@
           (if (pred x)
             (cons x (take-while pred xs))
             (take-while pred xs))]))
-
-(define (flatten lst)
-  (map append lst))
