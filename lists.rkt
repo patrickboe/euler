@@ -1,6 +1,9 @@
-#lang racket/base
+#lang racket
 
-(provide split-while)
+(provide take-while split-while)
+
+(define (any? lst)
+  (not (empty? lst)))
 
 (define (split-while f xs)
   (if (and (any? xs) (f (car xs)))
@@ -9,3 +12,13 @@
       (values (cons (car xs) taken) remain))
     (values empty xs)))
 
+(define (take-while pred lst)
+  (match lst
+         ['() '()]
+         [(cons x xs)
+          (if (pred x)
+            (cons x (take-while pred xs))
+            (take-while pred xs))]))
+
+(define (flatten lst)
+  (map append lst))
