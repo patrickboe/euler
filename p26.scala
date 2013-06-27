@@ -20,12 +20,10 @@ add the second to last digit to the end of every
 untracked run, and add approx new run starting
 with that digit
 */
+object Main {
 
-import scala.math._
+  case class ApproximationState(denom: Int, mag: Int, approx: Int, error: Int)
 
-case class ApproximationState(denom: Int, mag: Int, approx: Int, error: Int)
-
-object Hi {
   def main(args: Array[String]) =
     println(inverseRepeatLength(args.first.toInt))
 
@@ -33,6 +31,8 @@ object Hi {
     Iterator.range(2,n).map(inverseRepeatLength).max
 
   def inverseRepeatLength(x: Int) =
+
+  def imperfectInverseApproximations(x: Int) =
     approximationsFrom(ApproximationState(x,1,0,1)).takeWhile(s=>s.error>0)
 
   def minFun(f: Int=>Int) =
@@ -44,12 +44,20 @@ object Hi {
   def betterDecimalFractionApproxFor(denom: Int, magnitude: Int) =
     minFun(decimalFractionError(denom, magnitude))
 
-  def approximationsFrom(a: ApproximationState) : Stream[ApproximationState] = {
-    val candidateApproxes = Iterator.range(-5,6).map((10 * a.approx).+)
-    val nextMag = a.mag * 10
-    val nextApprox = candidateApproxes.reduceLeft(betterDecimalFractionApproxFor(a.denom, nextMag))
-    val nextState = ApproximationState(a.denom, nextMag, nextApprox, decimalFractionError(a.denom, nextMag)(nextApprox))
-    a #:: approximationsFrom(nextState)
+  def approximationsFrom(cur: ApproximationState) : Stream[ApproximationState] = {
+    cur #::
+    {
+      val candidateApproxes = Iterator.range(-5,6).map((10 * cur.approx).+)
+      val mag = cur.mag * 10
+      val approx = candidateApproxes.reduceLeft(betterDecimalFractionApproxFor(cur.denom, mag))
+      val nextState = ApproximationState(
+        cur.denom,
+        mag,
+        approx,
+        decimalFractionError(cur.denom, mag)(approx)
+      )
+      approximationsFrom(nextState)
+    }
   }
 
 }
