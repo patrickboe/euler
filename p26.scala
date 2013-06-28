@@ -6,19 +6,20 @@ difference from 1 to be the next i, and choose
 j to be the increment of j. yield 0 when the
 difference is zero.
 
-take the tail of any tracked runs leading with the
-second to last digit in the current decimal, and
-discard any other tracked runs. increment c[t] for
-each of the remaining tracked runs. For runs with an
-empty tail, yield c[t]
+let d be the last digit in the current approximation
+if the approximation is too low, and the
+last digit - 1 if the approximation is too high.
 
-examine whether the second to last digit in the
-current decimal is at the head of any untracked runs.
-if so, create approx track of that run with c[t] set to 0.
+enqueue d to every untracked run, and add a new
+run starting with that digit
 
-add the second to last digit to the end of every
-untracked run, and add approx new run starting
-with that digit
+examine whether d is at the head of any untracked runs.
+if so, create a track of that run with c[t] set to 0.
+
+take the tail of any tracked runs leading with
+d, and discard any other tracked runs. increment
+c[t] for each of the remaining tracked runs. For
+runs with an empty tail, yield c[t]
 */
 object Main {
 
