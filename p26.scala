@@ -10,20 +10,19 @@ let d be the last digit in the current approximation
 if the approximation is too low, and the
 last digit - 1 if the approximation is too high.
 
-enqueue d to every untracked run, and add a new
-run starting with that digit
+keep a map M of digits 0-9 to how many digits back
+that digit last appeared, along with what the
+error term on the approximation was at that time.
 
-examine whether d is at the head of any untracked runs.
-if so, create a track of that run with c[t] set to 0.
-
-take the tail of any tracked runs leading with
-d, and discard any other tracked runs. increment
-c[t] for each of the remaining tracked runs. For
-runs with an empty tail, yield c[t]
+if M[d] has the same error term as the current error,
+this is the beginning of a repeat. yield the distance
+stored for M[d].
 */
 object Main {
 
   case class ApproximationState(denom: Int, mag: Int, approx: Int, error: Int)
+
+  case class TabulationState(approxes: Seq[ApproximationState])
 
   def main(args: Array[String]) =
     println(inverseRepeatLength(args.first.toInt))
@@ -31,26 +30,43 @@ object Main {
   def maxRepeatsBelow(n: Int) =
     Iterator.range(2,n).map(inverseRepeatLength).max
 
+  val emptyPlaces =
+    Vector.fill[Vector[Int]](10)(Vector.fill[Int](10)(0))
+
   def inverseRepeatLength(x: Int) =
+    tabulationsFrom(
+      TabulationState(
+        emptyPlaces,
+        imperfectInverseApproximations(x)))
 
   def imperfectInverseApproximations(x: Int) =
-    approximationsFrom(ApproximationState(x,1,0,1)).takeWhile(s=>s.error>0)
+    approximationsFrom(ApproximationState(x,1,0,1)).takeWhile(s=>s.error != 0)
 
-  def minFun(f: Int=>Int) =
-    (x: Int,y: Int) => if(f(y) < f(x)) y else x
+  def decimalFractionError(denom: Int, magnitude: Int, approx: Int) : Int=>Int =
+    approx * denom - magnitude
 
-  def decimalFractionError(denom: Int, magnitude: Int) : Int=>Int =
-    c => math.abs(c * denom - magnitude)
+  def newPlaces(places: IndexedSeq[IndexedSeq[Int]], approxState: ApproximationState) {
+    val lastDigit = approxState.approx % 10
+    places.updated(
+      lastDigit,
+      places[lastDigit].updated(approxState.error,log(10,approxState.mag))
+    )
+  }
 
-  def betterDecimalFractionApproxFor(denom: Int, magnitude: Int) =
-    minFun(decimalFractionError(denom, magnitude))
+  def tabulationsFrom(cur: TabulationState) : Stream[TabulationState] = {
+    cur #::
+    if(cur.tail.isEmpty)
+      nil
+    else
+      tabulationsFrom(TabulationState(cur.approxes.tail, newPlaces(cur.places, cur.approxes.head)))
+  }
 
   def approximationsFrom(cur: ApproximationState) : Stream[ApproximationState] = {
     cur #::
     {
       val candidateApproxes = Iterator.range(-5,6).map((10 * cur.approx).+)
       val mag = cur.mag * 10
-      val approx = candidateApproxes.reduceLeft(betterDecimalFractionApproxFor(cur.denom, mag))
+      val approx = candidateApproxes.minBy(c=>math.abs(decimalFractionError(cur.denom, mag,c)))
       val nextState = ApproximationState(
         cur.denom,
         mag,
