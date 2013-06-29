@@ -20,60 +20,62 @@ stored for M[d].
 */
 object Main {
 
-  case class ApproximationState(denom: Int, mag: Int, approx: Int, error: Int)
-
-  case class TabulationState(approxes: Seq[ApproximationState])
+  case class ApproximationState(digit: Int, error: Int)
 
   def main(args: Array[String]) =
-    println(inverseRepeatLength(args.first.toInt))
+    println(maxRepeatsBelow(args.first.toInt))
 
   def maxRepeatsBelow(n: Int) =
-    Iterator.range(2,n).map(inverseRepeatLength).max
-
-  val emptyPlaces =
-    Vector.fill[Vector[Int]](10)(Vector.fill[Int](10)(0))
+    Iterator.range(2,n).maxBy(inverseRepeatLength)
 
   def inverseRepeatLength(x: Int) =
-    tabulationsFrom(
-      TabulationState(
-        emptyPlaces,
-        imperfectInverseApproximations(x)))
+    repeatLength(
+      imperfectInverseApproximations(x),
+      Map.empty[Int,Int],
+      0)
 
   def imperfectInverseApproximations(x: Int) =
-    approximationsFrom(ApproximationState(x,1,0,1)).takeWhile(s=>s.error != 0)
+    approximationsFrom(x, ApproximationState(0,1)).takeWhile(s=>s.error != 0)
 
-  def decimalFractionError(denom: Int, magnitude: Int, approx: Int) : Int=>Int =
-    approx * denom - magnitude
+  def decimalFractionError(denom: Int, target: Int, approx: Int) =
+    target - approx * denom
 
-  def newPlaces(places: IndexedSeq[IndexedSeq[Int]], approxState: ApproximationState) {
-    val lastDigit = approxState.approx % 10
-    places.updated(
-      lastDigit,
-      places[lastDigit].updated(approxState.error,log(10,approxState.mag))
-    )
+  def repeatLength(
+    approxes: Seq[ApproximationState],
+    places: Map[Int,Int],
+    place: Int) : Int = {
+    if(approxes.tail.isEmpty)
+      0
+    else {
+      val a = approxes.head
+      val stateIndex = a.error * 20 + a.digit
+      val occurrence = places.get(stateIndex)
+      occurrence match {
+        case Some(i) =>
+           place - i
+        case None =>
+          repeatLength(
+            approxes.tail,
+            places.updated(stateIndex,place),
+            place + 1)
+      }
+    }
   }
 
-  def tabulationsFrom(cur: TabulationState) : Stream[TabulationState] = {
-    cur #::
-    if(cur.tail.isEmpty)
-      nil
-    else
-      tabulationsFrom(TabulationState(cur.approxes.tail, newPlaces(cur.places, cur.approxes.head)))
-  }
-
-  def approximationsFrom(cur: ApproximationState) : Stream[ApproximationState] = {
+  def approximationsFrom(denom: Int, cur: ApproximationState)
+      : Stream[ApproximationState] = {
     cur #::
     {
-      val candidateApproxes = Iterator.range(-5,6).map((10 * cur.approx).+)
-      val mag = cur.mag * 10
-      val approx = candidateApproxes.minBy(c=>math.abs(decimalFractionError(cur.denom, mag,c)))
-      val nextState = ApproximationState(
-        cur.denom,
-        mag,
-        approx,
-        decimalFractionError(cur.denom, mag)(approx)
+      val candidateApproxes = Iterator.range(-5,6)
+      val target = cur.error * 10
+      val approx = candidateApproxes.minBy(c =>
+        math.abs(decimalFractionError(denom, target, c))
       )
-      approximationsFrom(nextState)
+      val nextState = ApproximationState(
+        approx,
+        decimalFractionError(denom, target, approx)
+      )
+      approximationsFrom(denom, nextState)
     }
   }
 
