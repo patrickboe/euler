@@ -1,8 +1,8 @@
 java.lang.UnsupportedOperationException: empty.maxBy
 	at scala.collection.TraversableOnce$class.maxBy(TraversableOnce.scala:208)
 	at scala.collection.immutable.Vector.maxBy(Vector.scala:63)
-	at Main$$anon$1.maxQuadraticPrimeRun(p27.scala:43)
-	at Main$$anon$1.<init>(p27.scala:46)
+	at Main$$anon$1.maxQuadraticPrimeRun(p27.scala:45)
+	at Main$$anon$1.<init>(p27.scala:48)
 	at Main$.main(p27.scala:1)
 	at Main.main(p27.scala)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)

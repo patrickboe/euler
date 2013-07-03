@@ -9,7 +9,7 @@ val isPrime: Int=>Boolean = {
     def followingUpdates(x: Int) : Stream[SieveUpdater] = {
       var p = (Iterator from x) filter sieve next
       var m = p * p
-      SieveUpdater(p, (n: Int) =>
+      SieveUpdater(p, n =>
         if(m<=n){
           val mults = m to n by p
           sieve --= mults
@@ -23,24 +23,26 @@ val isPrime: Int=>Boolean = {
     sieve ++= (definedTo + 1) to x
     definedTo = x
     (sieveUpdaters
-      takeWhile ((su: SieveUpdater)=>math.pow(su.factor,2) <= x)
-      foreach ((su: SieveUpdater)=>su.updateWith(x)))
+      takeWhile (s=>math.pow(s.factor,2) <= x)
+      foreach (s=>s.updateWith(x)))
   }
 
-  (x: Int) => {
+  x => {
     if (x > definedTo) growTo(x)
     sieve(x)
   }
 }
 
 def quadPrimeRun(a: Int,b: Int) =
-  ((Iterator from 0) map (x=> x * (a + x) + b) takeWhile isPrime)
+  ((Iterator from 0)
+    map (x=> x * (a + x) + b)
+    takeWhile isPrime)
 
 def maxQuadraticPrimeRun(n: Int) = {
   (for (a <- n to -n if a % 2 != 1;
         b <- n to 2 if isPrime(b)) yield {
     (a,b)
-  }) maxBy ((a: Int,b: Int) => quadPrimeRun(a,b).length).tupled
+  }) maxBy (t => quadPrimeRun(t._1,t._2).length)
 }
 
 println(maxQuadraticPrimeRun(1000))
