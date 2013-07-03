@@ -4,18 +4,17 @@ case class SieveUpdater(factor: Int, updateWith: Int=>Unit)
 
 val isPrime: Int=>Boolean = {
   var definedTo = 2
-  val sieve = BitSet(definedTo)
+  val sieve = BitSet(2)
   val sieveUpdaters = {
-    def followingUpdates(p: Int) : Stream[SieveUpdater] = {
-      if(sieve(p)) {
-        var m = p * p
-        SieveUpdater(p, (n: Int) => {
+    def followingUpdates(x: Int) : Stream[SieveUpdater] = {
+      var p = (Iterator from x) filter sieve next
+      var m = p * p
+      SieveUpdater(p, (n: Int) =>
+        if(m<=n){
           val mults = m to n by p
           sieve --= mults
-          m = mults last
+          m = (mults last) + p
         }) #:: followingUpdates(p + 1)
-      } else
-        followingUpdates(p + 1)
     }
     followingUpdates(2)
   }
@@ -23,8 +22,9 @@ val isPrime: Int=>Boolean = {
   def growTo(x: Int) = {
     sieve ++= (definedTo + 1) to x
     definedTo = x
-    (sieveUpdaters takeWhile ((su: SieveUpdater)=>math.pow(su.factor,2) <= x)).
-      foreach ((su: SieveUpdater)=>su.updateWith(x))
+    (sieveUpdaters
+      takeWhile ((su: SieveUpdater)=>math.pow(su.factor,2) <= x)
+      foreach ((su: SieveUpdater)=>su.updateWith(x)))
   }
 
   (x: Int) => {
@@ -34,11 +34,13 @@ val isPrime: Int=>Boolean = {
 }
 
 def quadPrimeRun(a: Int,b: Int) =
-  ((Iterator from 0) map (x=> x*x + a*x + b) takeWhile isPrime)
+  ((Iterator from 0) map (x=> x * (a + x) + b) takeWhile isPrime)
 
 def maxQuadraticPrimeRun(n: Int) = {
-  (for(a <- -n to n if a % 2 != 1; b <- 2 to n if isPrime(b))
-    yield (a,b)) maxBy ((a: Int,b: Int) => quadPrimeRun(a,b).length).tupled
+  (for (a <- n to -n if a % 2 != 1;
+        b <- n to 2 if isPrime(b)) yield {
+    (a,b)
+  }) maxBy ((a: Int,b: Int) => quadPrimeRun(a,b).length).tupled
 }
 
 println(maxQuadraticPrimeRun(1000))
