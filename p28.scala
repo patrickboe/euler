@@ -8,7 +8,7 @@ val northeast: Stream[Int] = 1 #:: northeast zip ringPerims map tupleSum
 
 val southeast: Stream[Int] = 1 #:: northeast zip ringWidths map tupleSum
 
-val diagSum = ((northeast tail) ++ (southeast tail) reduce (_ + _)) * 2 + 1
+val diagSum = (northeast ++ southeast reduce (_ + _)) * 2 + 1
 
 println(diagSum)
 // vim: set ts=2 sw=2 et:
