@@ -20,17 +20,12 @@
   are equal when evaluated)
 */
 
-import math._
-
-def dupes(n: Int) =
-  (for (
-    c <- 2 to (sqrt(n) toInt);
-    i <- 2 to (log(n)/log(2) toInt) if pow(c,i)<=n;
+99 * 99 - (((
+  for (
+    c <- 2 to 10;
+    i <- 2 to 6 if math.pow(c,i)<=100;
     k <- 1 until i;
-    j <- 2 to n * k / i if (i * j % k == 0)
-  ) yield (pow(c,i) toInt,j)) toSet
-
-def powerCount(n: Int) =
-  (pow(n - 1,2) toInt) - (dupes(n) size)
+    j <- 2 to 100 * k / i if (i * j % k == 0)
+  ) yield (math.pow(c,i) toInt,j)) toSet) size)
 
 // vim: set ts=2 sw=2 et:
